@@ -33,15 +33,19 @@ Servo Driveright;
 Servo Turret;
 SharpIR IRRangeFinder(SharpIr, 25, 93, 20150);
 NewPing sonar1(Ping1, Ping1, 200);
-NewPing sonar1(Ping2, Ping2, 200);
-NewPing sonar1(Ping3, Ping3, 200);
-NewPing sonar1(Ping4, Ping4, 200);
+NewPing sonar2(Ping2, Ping2, 200);
+NewPing sonar3(Ping3, Ping3, 200);
+NewPing sonar4(Ping4, Ping4, 200);
 
 void setup() {
   
   Driveleft.attach(Dleft);
+  Driveleft.write(DleftStop);
   Driveright.attach(Dright);
+  Driveright.write(DrightStop);
   Turret.attach(turret);
+  Turret.write(TurretCenter);
+
   
   pinMode(LDRLeft, INPUT);
   pinMode(LDRCenter, INPUT);
