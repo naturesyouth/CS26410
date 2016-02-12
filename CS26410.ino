@@ -24,7 +24,7 @@
 #define turret 13
 
 #define DrightStop 68
-#define DleftStop 84
+#define DleftStop 83
 #define TurretCenter 84
 
 
@@ -45,7 +45,6 @@ void setup() {
   Driveright.write(DrightStop);
   Turret.attach(turret);
   Turret.write(TurretCenter);
-
   
   pinMode(LDRLeft, INPUT);
   pinMode(LDRCenter, INPUT);
@@ -56,6 +55,9 @@ void setup() {
   pinMode(SharpIrEnable, OUTPUT);
   pinMode(LEDRed, OUTPUT);
   
+  Serial.begin(9600);
+  
+   
   
   
 }
@@ -63,3 +65,5 @@ void setup() {
 void loop(){
 delay(10);
 }
+
+
