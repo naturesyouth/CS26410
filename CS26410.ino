@@ -23,6 +23,10 @@
 #define SharpIrEnable 12
 #define turret 13
 
+#define DrightStop 68
+#define DleftStop 84
+#define TurretCenter 84
+
 
 Servo Driveleft;
 Servo Driveright;
@@ -47,6 +51,7 @@ void setup() {
   
   pinMode(SharpIrEnable, OUTPUT);
   pinMode(LEDRed, OUTPUT);
+  
   
   
 }
