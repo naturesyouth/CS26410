@@ -54,43 +54,82 @@ NewPing sonar2(Ping2, Ping2, 200);
 NewPing sonar3(Ping3, Ping3, 200);
 NewPing sonar4(Ping4, Ping4, 200);
 
-void remote(int input) {
-  case(input) {
+void remote(int val) {
+  switch (val) {
       case Forward:
           //move forward
+          motorBasic(1);
           break;
-      case Backwards:
+      case Backward:
           //move backwards
-          break:
+          motorBasic(1);
+          break;
       case Turret_Left:
           //move turret left
-          break:
+          break;
       case Turret_Right:
           //move Turret right
           break;
       case Pivot_Left:
           //pivot robot left
+          motorBasic(2);
           break;
       case Pivot_Right:
           //pivot robot right
-          break:
+          motorBasic(3);
+          break;
       case Stop:
           //stop robot
+          motorBasic(0);
           break;
       case Function_1:
           //implement function 1
-          break:
+          break;
       case Function_2:
           //implement function 2
-          break:
-      case Function_2:
+          break;
+      case Function_3:
           //implement function 2
-          break:
+          break;
       default:
           //stuff perhaps
           break;
   }
-       
+}
+   
+void motorBasic(int dir) {
+  switch (dir) {
+    case -1:
+      //do something when var equals 1
+      Driveleft.write(DleftStop - 40);
+      Driveright.write(DrightStop + 40);
+      break;
+    case 0:
+      //do something when var equals 2
+      Driveleft.write(DleftStop );
+      Driveright.write(DrightStop);
+      break;
+    case 1:
+      //do something when var equals 2
+      Driveleft.write(DleftStop + 40);
+      Driveright.write(DrightStop - 40);
+      break;
+    case 2:
+      //do something when var equals 2
+      Driveleft.write(DleftStop);
+      Driveright.write(DrightStop + 40);
+      break;
+    case 3:
+      //do something when var equals 2
+      Driveleft.write(DleftStop - 40);
+      Driveright.write(DrightStop);
+      break;
+    default:
+      // if nothing else matches, do the default
+      // default is optional
+      break;
+  }
+}    
     
   
 
