@@ -1,0 +1,27 @@
+// an implementation of a simple moving average algorithm
+
+#define MovingAverageWidth 5
+
+int boxcar[MovingAverageWidth];
+int boxcar_index = 0;
+
+void add_boxcar(int add){
+    
+    if(boxcar_index == MovingAverageWidth){
+        boxcar_index = 0;
+        boxcar[boxcar_index] = add/MovingAverageWidth;
+    } else{
+        boxcar_index++;
+        boxcar[boxcar_index] = add/MovingAverageWidth;
+    }
+    
+}
+        
+
+int moving_average() {
+    int mean = 0;
+    for (int i =0; i < MovingAverageWidth; i++){
+        mean = mean + boxcar[i];       
+    }    
+    return mean;
+}

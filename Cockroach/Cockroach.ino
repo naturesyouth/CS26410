@@ -1,4 +1,9 @@
+/*
+Author:    William Hogg
+Description:
+            This is a program to emulate a cockroach that will follow walls and react to light.
 
+*/
 //included librarys
 #include <SharpIR.h>
 #include <NewPing.h>
@@ -28,8 +33,8 @@
 #define turret          13
 
 //calibration values
-#define DrightStop      68
-#define DleftStop       83
+#define DrightStop      67
+#define DleftStop       84
 #define TurretCenter    84
 
 //app control deffinition
@@ -53,6 +58,28 @@ NewPing sonar1(Ping1, Ping1, 200);
 NewPing sonar2(Ping2, Ping2, 200);
 NewPing sonar3(Ping3, Ping3, 200);
 NewPing sonar4(Ping4, Ping4, 200);
+
+void setup() {
+  
+  Driveleft.attach(Dleft);
+  Driveleft.write(DleftStop);
+  Driveright.attach(Dright);
+  Driveright.write(DrightStop);
+  Turret.attach(turret);
+  Turret.write(TurretCenter);
+  
+  pinMode(LDRLeft, INPUT);
+  pinMode(LDRCenter, INPUT);
+  pinMode(LDRRight, INPUT);
+  pinMode(LDRTop, INPUT);
+  pinMode(PB1,INPUT);
+  
+  pinMode(SharpIrEnable, OUTPUT);
+  pinMode(LEDRed, OUTPUT);
+  
+  Serial.begin(9600);  
+  
+}
 
 void remote(int val) {
   switch (val) {
@@ -133,33 +160,16 @@ void motorBasic(int dir) {
     
   
 
-void setup() {
-  
-  Driveleft.attach(Dleft);
-  Driveleft.write(DleftStop);
-  Driveright.attach(Dright);
-  Driveright.write(DrightStop);
-  Turret.attach(turret);
-  Turret.write(TurretCenter);
-  
-  pinMode(LDRLeft, INPUT);
-  pinMode(LDRCenter, INPUT);
-  pinMode(LDRRight, INPUT);
-  pinMode(LDRTop, INPUT);
-  pinMode(PB1,INPUT);
-  
-  pinMode(SharpIrEnable, OUTPUT);
-  pinMode(LEDRed, OUTPUT);
-  
-  Serial.begin(9600);
-  
-   
-  
-  
-}
+
 
 void loop(){
-delay(10);
+    Serial.println("starting loop");
+while(!Serial.available());
+int test1 = Serial.parseInt();
+Serial.flush();
+Serial.println(test1);
+remote(test1);
+delay(250);
 }
 
 
