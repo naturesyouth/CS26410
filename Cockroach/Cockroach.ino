@@ -37,6 +37,9 @@ Description:
 #define DleftStop       84
 #define TurretCenter    84
 
+//other deffinitions
+#define MovingAverageWidth 5
+
 //app control deffinition
 #define Forward         48
 #define Backward	49
@@ -59,6 +62,10 @@ NewPing sonar2(Ping2, Ping2, 200);
 NewPing sonar3(Ping3, Ping3, 200);
 NewPing sonar4(Ping4, Ping4, 200);
 
+//global variables
+int boxcar[MovingAverageWidth];
+int boxcar_index = 0;
+
 void setup() {
   
   Driveleft.attach(Dleft);
@@ -80,6 +87,11 @@ void setup() {
   Serial.begin(9600);  
   
 }
+
+
+void loop(){
+}
+
 
 void remote(int val) {
   switch (val) {
@@ -123,6 +135,7 @@ void remote(int val) {
           break;
   }
 }
+
    
 void motorBasic(int dir) {
   switch (dir) {
@@ -157,21 +170,28 @@ void motorBasic(int dir) {
       break;
   }
 }    
+
+
+void boxcar_addValue(int add){
     
-  
-
-
-
-void loop(){
-    Serial.println("starting loop");
-while(!Serial.available());
-int test1 = Serial.parseInt();
-Serial.flush();
-Serial.println(test1);
-remote(test1);
-delay(250);
+    if(boxcar_index == MovingAverageWidth){
+        boxcar_index = 0;
+        boxcar[boxcar_index] = add/MovingAverageWidth;
+    } else{
+        boxcar_index++;
+        boxcar[boxcar_index] = add/MovingAverageWidth;
+    }
+    
 }
+        
 
+int boxcar_getAverage() {
+    int mean = 0;
+    for (int i =0; i < MovingAverageWidth; i++){
+        mean = mean + boxcar[i];       
+    }    
+    return mean;
+}
 
 
 
