@@ -41,7 +41,9 @@ Description:
 #define Dark            400
 
 //other deffinitions
+#define BrightnessTop      0
 #define MovingAverageWidth 5
+#define NoAverageDataSets  3
 
 
 //app control deffinition
@@ -67,8 +69,8 @@ NewPing sonar3(Ping3, Ping3, 200);
 NewPing sonar4(Ping4, Ping4, 200);
 
 //global variables
-int boxcar[MovingAverageWidth];
-int boxcar_index = 0;
+int boxcar[MovingAverageWidth*NoAverageDataSets];
+int boxcar_index[NoAverageDataSets];
 
 void setup() {
   
@@ -88,37 +90,85 @@ void setup() {
   pinMode(SharpIrEnable, OUTPUT);
   pinMode(LEDRed, OUTPUT);
   
-  Serial.begin(9600);  
+  Serial.begin(115200);  
   
   //ini the moving average array
   for(int i = 0; i < MovingAverageWidth; i++){      
-      boxcar_addValue(analogRead(LDRTop));
+      boxcar_addValue(analogRead(LDRTop),BrightnessTop);
       delay(2);
-  }
-  
+  }    
+  //ini the moving average for sonars
+  for(int p =1;p<=4;p++){
+      for(int i = 0; i < MovingAverageWidth; i++){   
+          readSonar(p);
+          delay(2);
+      }
+  }  
 }
 
 
 void loop(){
-    boxcar_addValue(analogRead(LDRTop));
-    Serial.print("LDRTop = ");
-    Serial.println(boxcar_getAverage());
+    
+    //Serial.println("BOOP LOOP");
+    boxcar_addValue(analogRead(LDRTop),BrightnessTop);
+    readSonar(2);
+    readSonar(3);
+    //Serial.print("LDRTop = ");
+    //Serial.println(boxcar_getAverage(BrightnessTop));
+    //Serial.print("sonar 3 says ");
+    //Serial.println(boxcar_getAverage(1));
+    //Serial.println(sonar1.ping());
+    avoider();
     sensitivity();
     delay(100);
 }
 
+void avoider(){
+    int leftRange = boxcar_getAverage(2);
+    int rightRange = boxcar_getAverage(3);
+   if(leftRange <= 10 || rightRange <= 10){
+       motor_basic(2);
+       delay(250);
+       motor_basic(0);
+   }
+}
+
+
 void sensitivity(){
-    int brightness = boxcar_getAverage();
+    int brightness = boxcar_getAverage(BrightnessTop);
     if ( brightness < Dark){
         motor_basic(0);
     }else if(brightness > Light){
         motor_basic(2);
     }else{
         motor_basic(1);
-    }
-        
-    
+    }    
 }
+
+
+void readSonar(int pingNo){
+    int range = 0;
+    switch (pingNo) {
+        case 1:
+            range = sonar1.ping_cm();
+            break;
+        case 2:
+            range = sonar2.ping_cm();
+            break;
+        case 3:
+            range = sonar3.ping_cm();
+            break;
+        case 4:
+            range = sonar4.ping_cm();
+            break;
+    }
+    if(range == 0){
+        range = 200;
+    }  
+      Serial.print(range);  
+    boxcar_addValue(range,pingNo);
+}
+
 
 void remote(int val) {
   switch (val) {
@@ -197,23 +247,23 @@ void motor_basic(int dir) {
 }    
 
 
-void boxcar_addValue(int add){
-    
-    if(boxcar_index == MovingAverageWidth){
-        boxcar_index = 0;
-        boxcar[boxcar_index] = add/MovingAverageWidth;
+void boxcar_addValue(int add,int set){
+    int offset = set*MovingAverageWidth;
+    if(boxcar_index[set] == MovingAverageWidth+offset){
+        boxcar_index[set] = 0;
+        boxcar[boxcar_index[set]+offset] = add/MovingAverageWidth;
     } else{
-        boxcar_index++;
-        boxcar[boxcar_index] = add/MovingAverageWidth;
-    }
-    
+        boxcar_index[set]++;
+        boxcar[boxcar_index[set]+offset] = add/MovingAverageWidth;
+    }    
 }
         
 
-int boxcar_getAverage() {
+int boxcar_getAverage(int set) {
     int mean = 0;
+    int offset = set*MovingAverageWidth;
     for (int i =0; i < MovingAverageWidth; i++){
-        mean = mean + boxcar[i];       
+        mean = mean + boxcar[i+offset];       
     }    
     return mean;
 }
