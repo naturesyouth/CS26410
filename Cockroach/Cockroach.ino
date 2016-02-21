@@ -36,9 +36,13 @@ Description:
 #define DrightStop      67
 #define DleftStop       84
 #define TurretCenter    84
+#define AmbiantLight    555
+#define Light           900
+#define Dark            400
 
 //other deffinitions
 #define MovingAverageWidth 5
+
 
 //app control deffinition
 #define Forward         48
@@ -72,8 +76,8 @@ void setup() {
   Driveleft.write(DleftStop);
   Driveright.attach(Dright);
   Driveright.write(DrightStop);
-  Turret.attach(turret);
-  Turret.write(TurretCenter);
+ // Turret.attach(turret);
+ // Turret.write(TurretCenter);
   
   pinMode(LDRLeft, INPUT);
   pinMode(LDRCenter, INPUT);
@@ -86,22 +90,45 @@ void setup() {
   
   Serial.begin(9600);  
   
+  //ini the moving average array
+  for(int i = 0; i < MovingAverageWidth; i++){      
+      boxcar_addValue(analogRead(LDRTop));
+      delay(2);
+  }
+  
 }
 
 
 void loop(){
+    boxcar_addValue(analogRead(LDRTop));
+    Serial.print("LDRTop = ");
+    Serial.println(boxcar_getAverage());
+    sensitivity();
+    delay(100);
 }
 
+void sensitivity(){
+    int brightness = boxcar_getAverage();
+    if ( brightness < Dark){
+        motor_basic(0);
+    }else if(brightness > Light){
+        motor_basic(2);
+    }else{
+        motor_basic(1);
+    }
+        
+    
+}
 
 void remote(int val) {
   switch (val) {
       case Forward:
           //move forward
-          motorBasic(1);
+          motor_basic(1);
           break;
       case Backward:
           //move backwards
-          motorBasic(1);
+          motor_basic(1);
           break;
       case Turret_Left:
           //move turret left
@@ -111,15 +138,15 @@ void remote(int val) {
           break;
       case Pivot_Left:
           //pivot robot left
-          motorBasic(2);
+          motor_basic(2);
           break;
       case Pivot_Right:
           //pivot robot right
-          motorBasic(3);
+          motor_basic(3);
           break;
       case Stop:
           //stop robot
-          motorBasic(0);
+          motor_basic(0);
           break;
       case Function_1:
           //implement function 1
@@ -137,36 +164,34 @@ void remote(int val) {
 }
 
    
-void motorBasic(int dir) {
+void motor_basic(int dir) {
   switch (dir) {
+    case 0:
+      //Stop motors
+      Driveleft.write(DleftStop );
+      Driveright.write(DrightStop);
+      break;    
+    case 1:
+      //Drive forwards
+      Driveleft.write(DleftStop + 40);
+      Driveright.write(DrightStop - 40);
+      break;
+    case 2:
+      //Pivot left
+      Driveleft.write(DleftStop);
+      Driveright.write(DrightStop + 40);
+      break;
+    case 3:
+      //Pivot right
+      Driveleft.write(DleftStop - 40);
+      Driveright.write(DrightStop);
+      break;
     case -1:
       //do something when var equals 1
       Driveleft.write(DleftStop - 40);
       Driveright.write(DrightStop + 40);
       break;
-    case 0:
-      //do something when var equals 2
-      Driveleft.write(DleftStop );
-      Driveright.write(DrightStop);
-      break;
-    case 1:
-      //do something when var equals 2
-      Driveleft.write(DleftStop + 40);
-      Driveright.write(DrightStop - 40);
-      break;
-    case 2:
-      //do something when var equals 2
-      Driveleft.write(DleftStop);
-      Driveright.write(DrightStop + 40);
-      break;
-    case 3:
-      //do something when var equals 2
-      Driveleft.write(DleftStop - 40);
-      Driveright.write(DrightStop);
-      break;
     default:
-      // if nothing else matches, do the default
-      // default is optional
       break;
   }
 }    
