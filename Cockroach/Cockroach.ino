@@ -36,14 +36,15 @@ Description:
 #define DrightStop      67
 #define DleftStop       84
 #define TurretCenter    84
-#define AmbiantLight    555
+#define AmbiantLight    670
 #define Light           900
-#define Dark            400
+#define Dark            300
 
 //other deffinitions
 #define BrightnessTop      0
 #define MovingAverageWidth 5
-#define NoAverageDataSets  3
+#define NoAverageDataSets  5
+#define Speed              10
 
 
 //app control deffinition
@@ -71,6 +72,9 @@ NewPing sonar4(Ping4, Ping4, 200);
 //global variables
 int boxcar[MovingAverageWidth*NoAverageDataSets];
 int boxcar_index[NoAverageDataSets];
+int pings[4];
+int priority =0;
+int driveVal =0;
 
 void setup() {
   
@@ -90,7 +94,7 @@ void setup() {
   pinMode(SharpIrEnable, OUTPUT);
   pinMode(LEDRed, OUTPUT);
   
-  Serial.begin(115200);  
+  Serial.begin(9600);  
   
   //ini the moving average array
   for(int i = 0; i < MovingAverageWidth; i++){      
@@ -108,40 +112,63 @@ void setup() {
 
 
 void loop(){
-    
+    driveVal =0;
+    priority =0;
     //Serial.println("BOOP LOOP");
     boxcar_addValue(analogRead(LDRTop),BrightnessTop);
+    readSonar(1);
     readSonar(2);
     readSonar(3);
+    readSonar(4);
     //Serial.print("LDRTop = ");
-    //Serial.println(boxcar_getAverage(BrightnessTop));
+    //Serial.println(boxcarGetAverage(BrightnessTop));
     //Serial.print("sonar 3 says ");
-    //Serial.println(boxcar_getAverage(1));
+    //Serial.println(boxcarGetAverage(3));
     //Serial.println(sonar1.ping());
+    //Serial.println("avoid");
     avoider();
+    //Serial.println("sense");
     sensitivity();
-    delay(100);
+    //Serial.println("follow");
+    //followWall();
+    
+    Serial.print(priority);
+    Serial.println(driveVal);
+    motor_basic(driveVal);
+    delay(500);
+    motor_basic(1);
+    delay(500);
 }
 
+
+void followWall(){
+    int range = pings[3];
+    if( range <= 7){
+        motor_queue(2,3);
+    }else if(range >= 7){
+        motor_queue(2,2);
+    }
+}
+
+
 void avoider(){
-    int leftRange = boxcar_getAverage(2);
-    int rightRange = boxcar_getAverage(3);
-   if(leftRange <= 10 || rightRange <= 10){
-       motor_basic(2);
-       delay(250);
-       motor_basic(0);
+    //int leftRange = boxcarGetAverage(2);
+    //int rightRange = boxcarGetAverage(3);
+   if(pings[1] <= 5 || pings[2] <= 5 || pings[0] <= 5 || pings[3] <= 5){
+      motor_queue(3,3);
+       //delay(500);
    }
 }
 
 
 void sensitivity(){
-    int brightness = boxcar_getAverage(BrightnessTop);
+    int brightness = boxcarGetAverage(BrightnessTop);
     if ( brightness < Dark){
-        motor_basic(0);
+        motor_queue(4,0);
     }else if(brightness > Light){
-        motor_basic(2);
+        //motor_basic(2);
     }else{
-        motor_basic(1);
+        motor_queue(0,1);
     }    
 }
 
@@ -150,23 +177,22 @@ void readSonar(int pingNo){
     int range = 0;
     switch (pingNo) {
         case 1:
-            range = sonar1.ping_cm();
+            pings[0] = sonar1.ping_cm();
+             
             break;
         case 2:
-            range = sonar2.ping_cm();
+            pings[1] = sonar2.ping_cm();
             break;
         case 3:
-            range = sonar3.ping_cm();
+            pings[2] = sonar3.ping_cm();
             break;
         case 4:
-            range = sonar4.ping_cm();
+            pings[3] = sonar4.ping_cm();
             break;
-    }
-    if(range == 0){
-        range = 200;
-    }  
-      Serial.print(range);  
-    boxcar_addValue(range,pingNo);
+    } 
+      //Serial.println(pings[1]);
+      //Serial.println(pings[3]+" " + pings[2]);
+    //boxcar_addValue(range,pingNo);
 }
 
 
@@ -213,6 +239,13 @@ void remote(int val) {
   }
 }
 
+void motor_queue(int pri, int mot){
+    if(pri > priority){
+        priority = pri;
+        driveVal = mot;
+    }
+}
+
    
 void motor_basic(int dir) {
   switch (dir) {
@@ -223,23 +256,23 @@ void motor_basic(int dir) {
       break;    
     case 1:
       //Drive forwards
-      Driveleft.write(DleftStop + 40);
-      Driveright.write(DrightStop - 40);
+      Driveleft.write(DleftStop + Speed);
+      Driveright.write(DrightStop - Speed);
       break;
     case 2:
       //Pivot left
-      Driveleft.write(DleftStop);
-      Driveright.write(DrightStop + 40);
+      Driveleft.write(DleftStop + Speed);
+      Driveright.write(DrightStop + Speed);
       break;
     case 3:
       //Pivot right
-      Driveleft.write(DleftStop - 40);
-      Driveright.write(DrightStop);
+      Driveleft.write(DleftStop - Speed);
+      Driveright.write(DrightStop - Speed);
       break;
     case -1:
       //do something when var equals 1
-      Driveleft.write(DleftStop - 40);
-      Driveright.write(DrightStop + 40);
+      Driveleft.write(DleftStop - Speed);
+      Driveright.write(DrightStop + Speed);
       break;
     default:
       break;
@@ -259,7 +292,7 @@ void boxcar_addValue(int add,int set){
 }
         
 
-int boxcar_getAverage(int set) {
+int boxcarGetAverage(int set) {
     int mean = 0;
     int offset = set*MovingAverageWidth;
     for (int i =0; i < MovingAverageWidth; i++){

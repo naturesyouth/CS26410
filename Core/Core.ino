@@ -59,7 +59,9 @@ NewPing sonar1(Ping1, Ping1, 200);
 NewPing sonar2(Ping2, Ping2, 200);
 NewPing sonar3(Ping3, Ping3, 200);
 NewPing sonar4(Ping4, Ping4, 200);
+SharpIR dist_sensor(SharpIr, 25, 93, 20150);
 
+/*
 void remote(int val) {
   switch (val) {
       case Forward:
@@ -102,8 +104,13 @@ void remote(int val) {
           break;
   }
 }
+*/
    
-void motorBasic(int dir) {
+void motorBasic(int dir, int drive) {
+    if(dir != 0){
+        Driveleft.attach(Dleft);
+        Driveright.attach(Dright);
+    }
   switch (dir) {
     case -1:
       //do something when var equals 1
@@ -134,16 +141,32 @@ void motorBasic(int dir) {
       // if nothing else matches, do the default
       // default is optional
       break;
+      delay(drive);
+      if(dir != 0){
+        Driveleft.detach();
+        Driveright.detach();
+    }
   }
-}    
+}   
+
+int turret_range(int deg){
+    Turret.attach(turret);
+    Turret.write(deg);
+    digitalWrite(SharpIrEnable, LOW);
+    delay(500);
+    int turret_dist = dist_sensor.distance();
+    digitalWrite(SharpIrEnable, HIGH);
+    Turret.detach();
+    return(turret_dist);
+}
     
   
 
 void setup() {
   
-  Driveleft.attach(Dleft);
+  
   Driveleft.write(DleftStop);
-  Driveright.attach(Dright);
+  
   Driveright.write(DrightStop);
   Turret.attach(turret);
   Turret.write(TurretCenter);
@@ -155,6 +178,7 @@ void setup() {
   pinMode(PB1,INPUT);
   
   pinMode(SharpIrEnable, OUTPUT);
+  digitalWrite(SharpIrEnable, HIGH);
   pinMode(LEDRed, OUTPUT);
   
   Serial.begin(9600);
@@ -166,11 +190,11 @@ void setup() {
 
 void loop(){
     Serial.println("starting loop");
-while(!Serial.available());
-int test1 = Serial.parseInt();
-Serial.flush();
-Serial.println(test1);
-remote(test1);
+    
+    for(int i=0; i < 180; i=i+10){
+        Serial.println(turret_range(i));
+    }
+    
 delay(250);
 }
 
