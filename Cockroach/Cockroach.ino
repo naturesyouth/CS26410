@@ -45,6 +45,7 @@ Description:
 #define MovingAverageWidth 5
 #define NoAverageDataSets  5
 #define Speed              10
+#define sweepangle 45
 
 
 //app control deffinition
@@ -69,12 +70,33 @@ NewPing sonar2(Ping2, Ping2, 200);
 NewPing sonar3(Ping3, Ping3, 200);
 NewPing sonar4(Ping4, Ping4, 200);
 
+struct w {
+  int theta;
+  int CMDist;
+};
+
+struct boxcar {
+  int vals[3];
+  int average;
+  int index;
+  int delta;
+};
+
+struct motors {
+  int leftspeed;
+  int rightspeed;
+};
+
 //global variables
 int boxcar[MovingAverageWidth*NoAverageDataSets];
 int boxcar_index[NoAverageDataSets];
-int pings[4];
+
 int priority =0;
 int driveVal =0;
+
+struct boxcar pings[1];
+struct w  walls[2];
+
 
 void setup() {
   
@@ -142,7 +164,7 @@ void loop(){
 
 
 void followWall(){
-    int range = pings[3];
+    int range = pings[3].average;
     if( range <= 7){
         motor_queue(2,3);
     }else if(range >= 7){
@@ -154,7 +176,7 @@ void followWall(){
 void avoider(){
     //int leftRange = boxcarGetAverage(2);
     //int rightRange = boxcarGetAverage(3);
-   if(pings[1] <= 5 || pings[2] <= 5 || pings[0] <= 5 || pings[3] <= 5){
+   if(pings[1].average <= 5 || pings[2].average <= 5 || pings[0].average <= 5 || pings[3].average <= 5){
       motor_queue(3,3);
        //delay(500);
    }
@@ -299,6 +321,15 @@ int boxcarGetAverage(int set) {
         mean = mean + boxcar[i+offset];       
     }    
     return mean;
+}
+
+struct w calculateWall(int xnaught, int xone,  struct w wall) {
+  double alpha = xone * sin(sweepangle);
+  double beta  = ((xnaught + xone * cos(sweepangle)) / alpha);
+  double angle =  atan(beta);
+  wall.theta = (90 - sweepangle) + ((angle * 4068) / 71);
+  wall.CMDist = xone * sin(angle);
+  return wall;
 }
 
 
